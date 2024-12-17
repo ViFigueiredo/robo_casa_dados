@@ -18,12 +18,6 @@ table_name_port = os.getenv('table_name_port')
 # Conexão com o SQL Server
 conn1 = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server};DATABASE={db_receita};UID={db_username};PWD={db_password}')
 
-# print(f"server: {db_server}")
-# print(f"database: {db_port}")
-# print(f"username: {db_username}")
-# print(f"password: {db_password}")
-# print(f"table_name: {table_name}")
-
 cursor_base_receita = conn1.cursor()
 
 # Endpoint da API
@@ -32,13 +26,12 @@ pagina = 1
 total_registros_baixados = 0
 limite = 100  # Defina o limite por página
 
-# Payload ajustado
 payload_template = {
     "situacao_cadastral": ["ATIVA"],
-    "uf": ["PE"],  # Inclua outras UFs conforme necessário
+    "uf": ["PE","BA","CE","PB","PE","PI","RN","SE"],  # Inclua outras UFs conforme necessário
     "data_abertura": {
-        "inicio": "2024-12-15",  # Ajuste o intervalo de datas conforme necessário
-        "fim": "2024-12-15"  # Ajuste o intervalo de datas conforme necessário
+        "inicio": "2024-11-12",  # Ajuste o intervalo de datas conforme necessário
+        "fim": "2024-12-16"  # Ajuste o intervalo de datas conforme necessário
     },
     "limite": limite,
     "pagina": pagina
@@ -97,7 +90,6 @@ while True:
     total_registros_baixados += len(resultados)
 
     for registro in resultados:
-        # Converter os valores booleanos para 'True' ou 'False'
         email_valido = boolean_to_text(registro["contato_email"][0].get("valido"))
         simples_optante = boolean_to_text(registro["simples"].get("optante"))
         mei_optante = boolean_to_text(registro["mei"].get("optante"))
@@ -238,5 +230,4 @@ while True:
     pagina += 1
 
 conn1.close()
-conn2.close()
 print("Processamento concluído.")
