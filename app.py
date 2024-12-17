@@ -9,22 +9,22 @@ load_dotenv()
 
 # Configuração do SQL Server
 db_server = os.getenv('db_server')
-db = os.getenv('db')
+db_receita = os.getenv('db_receita')
 db_username = os.getenv('db_username')
 db_password = os.getenv('db_password')
-table_name = os.getenv('table_name')
-
-print(f"server: {db_server}")
-print(f"database: {db}")
-print(f"username: {db_username}")
-print(f"password: {db_password}")
-print(f"table_name: {table_name}")
+table_name_receita = os.getenv('table_name_receita')
+table_name_port = os.getenv('table_name_port')
 
 # Conexão com o SQL Server
-conn = pyodbc.connect(
-    f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server};DATABASE={db};UID={db_username};PWD={db_password}'
-)
-cursor = conn.cursor()
+conn1 = pyodbc.connect(f'DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={db_server};DATABASE={db_receita};UID={db_username};PWD={db_password}')
+
+# print(f"server: {db_server}")
+# print(f"database: {db_port}")
+# print(f"username: {db_username}")
+# print(f"password: {db_password}")
+# print(f"table_name: {table_name}")
+
+cursor_base_receita = conn1.cursor()
 
 # Endpoint da API
 url = "https://api.casadosdados.com.br/v5/cnpj/pesquisa?tipo_resultado=completo"
@@ -104,7 +104,6 @@ while True:
         bloqueado = boolean_to_text(registro.get("bloqueado"))
         filial_numero = number_to_text(registro.get("filial_numero"))
         capital_social = number_to_text(registro.get("capital_social"))
-
         ibge_municipio = number_to_text(registro["endereco"].get("ibge").get("codigo_municipio"))
         ibge_uf = number_to_text(registro["endereco"].get("ibge").get("codigo_uf"))
         ibge_latitude = number_to_text(registro["endereco"].get("ibge").get("latitude"))
@@ -173,8 +172,8 @@ while True:
 
         # Tentar inserir os valores no SQL Server com tratamento de erro
         try:
-            cursor.execute(f"""
-            INSERT INTO {table_name} (
+            cursor_base_receita.execute(f"""
+            INSERT INTO {table_name_receita} (
                 cnpj,
                 cnpj_raiz,
                 filial_numero,
@@ -215,6 +214,7 @@ while True:
                 data_exclusao_simples,
                 telefone_completo,
                 telefone_tipo,
+                contato_operadora,
                 email,            
                 email_valido,
                 email_dominio,
@@ -222,11 +222,11 @@ while True:
                 ibge_uf,
                 ibge_latitude,
                 ibge_longitude
-            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
             """, values)
-            conn.commit()
+            conn1.commit()
         except pyodbc.DataError as e:
-            print(f"\nErro ao tentar inserir os dados na tabela '{table_name}'")
+            print(f"\nErro ao tentar inserir os dados na tabela '{table_name_receita}'")
             print(f"Dados: {values}")
             print(f"Detalhes do erro: {e}")
 
@@ -237,5 +237,6 @@ while True:
 
     pagina += 1
 
+conn1.close()
+conn2.close()
 print("Processamento concluído.")
-conn.close()
